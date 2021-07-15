@@ -4,18 +4,20 @@ import {
   FORM_DATA_RADIO,
   FORM_DATA_SELECT,
   FORM_DATA_TEXTAREA,
-  EventStatusOptions,
   EventManagementStatusOptions,
   YesNoUnknown,
   FORM_DATA_CHECKBOX,
   InvestigationStatusOptions,
+  EventStatusOptionsEdit,
+  DiseaseTransmissionMode,
 } from '../../app.constants';
 
 import { EnumToKeyValuePipe } from '../../_pipes/enum-to-key-value/enum-to-key-value.pipe';
 
 const pipe = new EnumToKeyValuePipe();
 
-const eventStatusOptions = pipe.transform(EventStatusOptions);
+const diseaseTransmissionMode = pipe.transform(DiseaseTransmissionMode);
+const eventStatusOptionsEdit = pipe.transform(EventStatusOptionsEdit);
 const eventManagementStatusOptions = pipe.transform(EventManagementStatusOptions);
 const yesNoUnknown = pipe.transform(YesNoUnknown);
 const investigationStatusOptions = pipe.transform(InvestigationStatusOptions);
@@ -62,7 +64,7 @@ export const FORM_DATA_EVENT_ADD = [
         key: 'eventStatus',
         label: 'EventAction.eventStatus',
         validation: ['required'],
-        options: eventStatusOptions,
+        options: eventStatusOptionsEdit,
       },
       {
         ...FORM_DATA_SELECT,
@@ -138,17 +140,17 @@ export const FORM_DATA_EVENT_ADD = [
         ...FORM_DATA_SELECT,
         key: 'primaryModeTransmission',
         label: 'Event.diseaseTransmissionMode',
-        options: [
-          {
-            key: 'default',
-            value: 'default',
-          },
-        ],
+        dependingOn: 'eventStatus',
+        dependingOnValues: ['CLUSTER'],
+        options: diseaseTransmissionMode,
       },
       {
         ...FORM_DATA_SELECT,
         key: 'humanTransmission',
+        newLine: true,
         label: 'Event.humanTransmissionMode',
+        dependingOn: 'primaryModeTransmission',
+        dependingOnValues: ['HUMANTOHUMAN'],
         options: [
           {
             key: 'default',
@@ -156,39 +158,44 @@ export const FORM_DATA_EVENT_ADD = [
           },
         ],
       },
-      {
-        ...FORM_DATA_SELECT,
-        key: 'parentalTransmission',
-        label: 'Event.parenteralTransmissionMode',
-        options: [
-          {
-            key: 'default',
-            value: 'default',
-          },
-        ],
-      },
-      {
-        ...FORM_DATA_SELECT,
-        key: 'medicallyAssociatedTransmission',
-        label: 'Event.medicallyAssociatedTransmissionMode',
-        options: [
-          {
-            key: 'default',
-            value: 'default',
-          },
-        ],
-      },
+      // {
+      //   ...FORM_DATA_SELECT,
+      //   key: 'parentalTransmission',
+      //   newLine: true,
+      //   label: 'Event.parenteralTransmissionMode',
+      //   options: [
+      //     {
+      //       key: 'default',
+      //       value: 'default',
+      //     },
+      //   ],
+      // },
+      // {
+      //   ...FORM_DATA_SELECT,
+      //   key: 'medicallyAssociatedTransmission',
+      //   label: 'Event.medicallyAssociatedTransmissionMode',
+      //   options: [
+      //     {
+      //       key: 'default',
+      //       value: 'default',
+      //     },
+      //   ],
+      // },
       {
         ...FORM_DATA_RADIO,
         key: 'nosocomial',
         label: 'Event.nosocomial',
         options: yesNoUnknown,
+        newLine: true,
+        dependingOn: 'eventStatus',
+        dependingOnValues: ['CLUSTER'],
       },
       {
         ...FORM_DATA_SELECT,
         key: 'infectionPath',
-        newLine: true,
         label: 'Event.infectionPathCertainty',
+        dependingOn: 'nosocomial',
+        dependingOnValues: ['YES'],
         options: [
           {
             key: 'default',
@@ -201,30 +208,40 @@ export const FORM_DATA_EVENT_ADD = [
         key: 'epidemiologicalEvidence',
         label: 'Event.epidemiologicalEvidence',
         newLine: true,
+        dependingOn: 'primaryModeTransmission',
+        dependingOnValues: ['HUMANTOHUMAN'],
         options: yesNoUnknown,
       },
       {
         ...FORM_DATA_CHECKBOX,
         key: 'study',
         label: 'EpidemiologicalEvidenceDetail.STUDY',
+        dependingOn: 'epidemiologicalEvidence',
+        dependingOnValues: ['YES'],
         newLine: true,
       },
       {
         ...FORM_DATA_CHECKBOX,
         key: 'explorativeSurvey',
         label: 'EpidemiologicalEvidenceDetail.EXPLORATIVE_SURVEY_OF_AFFECTED',
+        dependingOn: 'epidemiologicalEvidence',
+        dependingOnValues: ['YES'],
         newLine: true,
       },
       {
         ...FORM_DATA_CHECKBOX,
         key: 'ascertainedData',
         label: 'EpidemiologicalEvidenceDetail.DESCRIPTIVE_ANALYSIS_OF_ASCERTAINED_DATA',
+        dependingOn: 'epidemiologicalEvidence',
+        dependingOnValues: ['YES'],
         newLine: true,
       },
       {
         ...FORM_DATA_CHECKBOX,
         key: 'suspicion',
         label: 'EpidemiologicalEvidenceDetail.SUSPICION',
+        dependingOn: 'epidemiologicalEvidence',
+        dependingOnValues: ['YES'],
         newLine: true,
       },
       {
@@ -232,6 +249,8 @@ export const FORM_DATA_EVENT_ADD = [
         key: 'laboratoryDiagnosticEvidence',
         label: 'Event.laboratoryDiagnosticEvidence',
         options: yesNoUnknown,
+        dependingOn: 'primaryModeTransmission',
+        dependingOnValues: ['HUMANTOHUMAN'],
         newLine: true,
       },
     ],
@@ -252,11 +271,15 @@ export const FORM_DATA_EVENT_ADD = [
         label: 'Event.eventInvestigationStartDate',
         newLine: true,
         key: 'startInvestigationDate',
+        dependingOn: 'investigationStatus',
+        dependingOnValues: ['ONGOING', 'DONE', 'DISCARDED'],
       },
       {
-        ...FORM_DATA_INPUT,
+        ...FORM_DATA_DATE,
         label: 'Event.eventInvestigationEndDate',
         key: 'endInvestigationDate',
+        dependingOn: 'investigationStatus',
+        dependingOnValues: ['ONGOING', 'DONE', 'DISCARDED'],
       },
     ],
   },
